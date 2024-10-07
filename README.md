@@ -17,4 +17,4 @@ This project is a simple digital clock built using HTML and CSS. The clock displ
 
 1. Clone the repository to your local machine.
    ```bash
-   git clone https://github.com/theankktparmar/Clock.git
+   git clone https://github.com/theankitparmar/Clock.git
