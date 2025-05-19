@@ -19,239 +19,161 @@ This project is a simple digital clock built using HTML and CSS. The clock displ
    ```bash
    git clone https://github.com/theankitparmar/Clock.git
 
-
-
-Great — here’s a clean and professional implementation plan for your Android app with two activities:
-
-
----
-
-🔧 App Features Overview
-
-1. Activity 1 (InputActivity):
-
-Input a number between 4 to 10.
-
-Button to proceed to the second activity.
-
-
-
-2. Activity 2 (GridActivity):
-
-Dynamically show a NxN grid (e.g., 4x4...10x10).
-
-On clicking a cell:
-
-Blink the selected row, column, and both diagonals (if applicable).
-
-
-
-
-
-
----
-
-🧱 Tech Stack
-
-Language: Kotlin
-
-Architecture: MVVM not needed for this simple logic
-
-Views: ConstraintLayout, GridLayout, Dynamic UI
-
-Animations: Alpha blinking via ObjectAnimator or ValueAnimator
-
-
-
----
-
-✅ Step-by-Step Implementation
-
-
----
-
-1. activity_input.xml
-
-<!-- Simple layout for input -->
+-----------------------------------------
+✅ Final App Structure
+-----------------------------------------
+1. activity_main.xml
+------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:gravity="center"
+    android:id="@+id/layoutRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <EditText
-        android:id="@+id/numberInput"
-        android:hint="Enter number (4-10)"
-        android:inputType="number"
-        android:maxLength="2"
+        android:id="@+id/startEditText"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:hint="Start"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/endEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="End"
+        android:inputType="number" />
 
     <Button
         android:id="@+id/submitButton"
-        android:text="Generate Grid"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" />
+        android:text="Submit" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"/>
 </LinearLayout>
-
-
----
-
-2. InputActivity.kt
-
-class InputActivity : AppCompatActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_input)
-
-        val input = findViewById<EditText>(R.id.numberInput)
-        val button = findViewById<Button>(R.id.submitButton)
-
-        button.setOnClickListener {
-            val number = input.text.toString().toIntOrNull()
-
-            if (number != null && number in 4..10) {
-                val intent = Intent(this, GridActivity::class.java)
-                intent.putExtra("GRID_SIZE", number)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Enter a number between 4 and 10", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-}
-
-
----
-
-3. activity_grid.xml
-
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+-----------------------------------
+2. item_timer.xml
+-----------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:orientation="vertical">
 
-    <GridLayout
-        android:id="@+id/gridLayout"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/itemText"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:alignmentMode="alignMargins"
-        android:columnCount="4"
-        android:rowCount="4"
-        android:padding="16dp"
-        android:layout_gravity="center"
-        android:useDefaultMargins="true" />
-</ScrollView>
+        android:textSize="20sp"
+        android:textColor="#000000"
+        android:text="Timer Item" />
+</LinearLayout>
+---------------------------------
+3. TimerItem.kt
+---------------------------------
+data class TimerItem(
+    val number: Int,
+    var isDone: Boolean = false
+)
+4. TimerAdapter.kt
+kotlin
+Copy
+Edit
+import android.graphics.Color
+import android.os.CountDownTimer
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 
+class TimerAdapter(private val items: List<TimerItem>) :
+    RecyclerView.Adapter<TimerAdapter.TimerViewHolder>() {
 
----
+    inner class TimerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val itemText: TextView = itemView.findViewById(R.id.itemText)
+    }
 
-4. GridActivity.kt
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TimerViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_timer, parent, false)
+        return TimerViewHolder(view)
+    }
 
-class GridActivity : AppCompatActivity() {
+    override fun onBindViewHolder(holder: TimerViewHolder, position: Int) {
+        val item = items[position]
 
-    private lateinit var gridLayout: GridLayout
-    private var gridSize = 4
-    private val cellViews = mutableListOf<TextView>()
+        if (item.isDone) {
+            holder.itemText.text = "Done"
+            holder.itemText.setTextColor(Color.GREEN)
+        } else {
+            holder.itemText.text = "Counting ${item.number}..."
+            holder.itemText.setTextColor(Color.BLACK)
+
+            object : CountDownTimer(2000, 1000) {
+                override fun onTick(millisUntilFinished: Long) {}
+
+                override fun onFinish() {
+                    item.isDone = true
+                    notifyItemChanged(position)
+                }
+            }.start()
+        }
+    }
+
+    override fun getItemCount(): Int = items.size
+}
+---------------------------------
+5. `````MainActivity.kt`````
+---------------------------------
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var startEditText: EditText
+    private lateinit var endEditText: EditText
+    private lateinit var submitButton: Button
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: TimerAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_grid)
+        setContentView(R.layout.activity_main)
 
-        gridLayout = findViewById(R.id.gridLayout)
-        gridSize = intent.getIntExtra("GRID_SIZE", 4)
+        startEditText = findViewById(R.id.startEditText)
+        endEditText = findViewById(R.id.endEditText)
+        submitButton = findViewById(R.id.submitButton)
+        recyclerView = findViewById(R.id.recyclerView)
 
-        gridLayout.columnCount = gridSize
-        gridLayout.rowCount = gridSize
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
-        generateGrid()
-    }
+        submitButton.setOnClickListener {
+            val start = startEditText.text.toString().toIntOrNull()
+            val end = endEditText.text.toString().toIntOrNull()
 
-    private fun generateGrid() {
-        for (row in 0 until gridSize) {
-            for (col in 0 until gridSize) {
-                val cell = TextView(this).apply {
-                    text = "${row * gridSize + col + 1}"
-                    textSize = 18f
-                    gravity = Gravity.CENTER
-                    setBackgroundColor(Color.LTGRAY)
-                    setTextColor(Color.BLACK)
-                    setPadding(16, 16, 16, 16)
-                    layoutParams = ViewGroup.LayoutParams(160, 160)
-
-                    setOnClickListener {
-                        blinkLines(row, col)
-                    }
-                }
-
-                gridLayout.addView(cell)
-                cellViews.add(cell)
+            if (start != null && end != null && end >= start) {
+                val items = (start..end).map { TimerItem(it) }
+                adapter = TimerAdapter(items)
+                recyclerView.adapter = adapter
+            } else {
+                Toast.makeText(this, "Enter valid start and end values", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun blinkLines(row: Int, col: Int) {
-        for (r in 0 until gridSize) {
-            blinkCell(getCellAt(r, col)) // Column
-            blinkCell(getCellAt(row, r)) // Row
-        }
-
-        // Diagonal (top-left to bottom-right)
-        if (row == col) {
-            for (i in 0 until gridSize) {
-                blinkCell(getCellAt(i, i))
-            }
-        }
-
-        // Anti-diagonal (top-right to bottom-left)
-        if (row + col == gridSize - 1) {
-            for (i in 0 until gridSize) {
-                blinkCell(getCellAt(i, gridSize - 1 - i))
-            }
-        }
-    }
-
-    private fun getCellAt(row: Int, col: Int): TextView {
-        return cellViews[row * gridSize + col]
-    }
-
-    private fun blinkCell(view: View) {
-        val animator = ObjectAnimator.ofFloat(view, "alpha", 1f, 0.3f, 1f)
-        animator.duration = 400
-        animator.repeatCount = 2
-        animator.start()
     }
 }
-
-
----
-
-✅ Final Touches:
-
-Add necessary permissions in AndroidManifest.xml
-
-Apply better UI via Material Design if needed
-
-Add bounds checking to avoid crashes
-
-Handle orientation change (optional)
-
-
-
----
-
-Would you like me to:
-
-Create a full GitHub project structure?
-
-Convert this to Jetpack Compose version?
-
-Add grid reset, random color blink, or sound effect?
-
-
-Let me know how you’d like to evolve this idea.
 
 
 
