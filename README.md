@@ -24,6 +24,7 @@ This project is a simple digital clock built using HTML and CSS. The clock displ
 -----------------------------------------
 1. activity_main.xml
 ------------------------------------------
+{
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/layoutRoot"
@@ -58,9 +59,11 @@ This project is a simple digital clock built using HTML and CSS. The clock displ
         android:layout_height="match_parent"
         android:layout_marginTop="16dp"/>
 </LinearLayout>
+}
 -----------------------------------
 2. item_timer.xml
 -----------------------------------
+{
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -76,17 +79,20 @@ This project is a simple digital clock built using HTML and CSS. The clock displ
         android:textColor="#000000"
         android:text="Timer Item" />
 </LinearLayout>
+}
 ---------------------------------
 3. TimerItem.kt
 ---------------------------------
+{
 data class TimerItem(
     val number: Int,
     var isDone: Boolean = false
 )
+}
+--------------------
 4. TimerAdapter.kt
-kotlin
-Copy
-Edit
+--------------------
+{
 import android.graphics.Color
 import android.os.CountDownTimer
 import android.view.LayoutInflater
@@ -130,9 +136,12 @@ class TimerAdapter(private val items: List<TimerItem>) :
 
     override fun getItemCount(): Int = items.size
 }
+
+}
 ---------------------------------
 5. `````MainActivity.kt`````
 ---------------------------------
+{        
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -173,6 +182,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+}
+
 }
 
 
